@@ -89,15 +89,15 @@
                 <ul class="list-disc list-inside space-y-1 text-sm text-slate-300">
                     <li><b>Gettone Base:</b> € 150 fissi per contratto/location.</li>
                     <li><b>Gettone Marginale:</b> Da € 15 a € 180 in base allo scaglione di Daily CTO stimato per location.</li>
-                    <li><b>M1 & M2 Deferred:</b> Compensi fissi a scaglioni mensili (da € 15 a € 500 per mese per location).</li>
+                    <li><b>M1 & M2 Deferred:</b> Compensi fissi a scaglioni valutati mese per mese sulla singola location.</li>
                     <li><b>Bonus Velocity:</b> Soglie cumulative basate sul totale delle location/MID qualificati.</li>
-                    <li><b>Milestone CTO:</b> Premio qualità basato sulla media del Daily CTO del portafoglio (fino a € 800).</li>
+                    <li><b>Milestone CTO:</b> Premio qualità basato sulla media del Daily CTO del portafoglio su M1 (fino a € 800).</li>
                 </ul>
             </div>
         </div>
     </div>
 
-    <script src="calc.js?v=12.0"></script>
+    <script src="calc.js?v=14.0"></script>
     <script>
         function copiaPrompt() {
             let text = document.getElementById('promptText').innerText;
@@ -179,12 +179,10 @@
             data.forEach(row => {
                 let nomeCliente = row[nameCol] ? row[nameCol].toString().toLowerCase() : "";
                 
-                // Salta le righe di riepilogo "Totale" presenti nei file Excel
                 if (nomeCliente.includes('totale') || nomeCliente.includes('total') || nomeCliente === '') {
                     return;
                 }
 
-                // Se l'utente ha inserito dei filtri testuali, applicali
                 if (clientiFiltrati.length > 0) {
                     let match = clientiFiltrati.some(c => nomeCliente.includes(c));
                     if (!match) return;
@@ -238,7 +236,8 @@
 
             document.getElementById('risultatoNuovo').innerHTML = `
                 <div class="flex justify-between"><span>Location / Contratti Attivi:</span> <b>${contratti}</b></div>
-                <div class="flex justify-between"><span>Transato M1 (Totale):</span> <b>€ ${transatoM1Totale.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</b></div>
+                <div class="flex justify-between"><span>Transato M1:</span> <b>€ ${transatoM1Totale.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</b></div>
+                <div class="flex justify-between"><span>Transato M2:</span> <b>€ ${transatoM2Totale.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</b></div>
                 <div class="flex justify-between"><span>Gettone Base (150€):</span> <b>€ ${nuovo.gettoneBase.toFixed(2)}</b></div>
                 <div class="flex justify-between"><span>Gettone Marginale:</span> <b>€ ${nuovo.gettoneMarginale.toFixed(2)}</b></div>
                 <div class="flex justify-between"><span>M1 & M2 (Scaglioni):</span> <b>€ ${nuovo.m1m2Nuovi.toFixed(2)}</b></div>
