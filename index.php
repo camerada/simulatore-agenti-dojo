@@ -16,14 +16,20 @@
         </header>
 
         <!-- Box Guida Operativa -->
-        <div class="bg-slate-800 border border-amber-500/40 p-6 rounded-xl mb-8">
+        <div class="bg-slate-800 border border-amber-500/40 p-6 rounded-xl mb-8 relative">
             <h2 class="text-lg font-bold text-amber-400 mb-2">Come ottenere il file corretto:</h2>
-            <ol class="list-decimal list-inside space-y-1.5 text-sm text-slate-300">
+            <ol class="list-decimal list-inside space-y-1.5 text-sm text-slate-300 mb-4">
                 <li>Apri l'<b>email del CTO inviata da Dojo</b> nei primi giorni del mese successivo (per valutare i due mesi precedenti).</li>
                 <li>Vai sulla stampa del report, crealo come <b>PDF</b> e scaricalo.</li>
-                <li>Chiedi a <b>Gemini</b> di estrarre e convertire i dati in un file <b>Excel (.xlsx)</b>, assicurandoti di escludere il terzo mese.</li>
+                <li>Chiedi a <b>Gemini</b> di estrarre e convertire i dati in un file <b>Excel (.xlsx)</b> usando il prompt qui sotto, escludendo il terzo mese.</li>
                 <li>Carica qui sotto il file Excel pulito con i dati dei due mesi per avviare la simulazione.</li>
             </ol>
+
+            <!-- Box Prompt Copiabile -->
+            <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <code id="promptText" class="text-xs text-slate-300 font-mono select-all">Ho allegato il report PDF del CTO inviato da Dojo (ricevuto nei primi giorni del mese). Estrai i dati tabulari e convertili in Excel (.xlsx) o CSV. Regole: 1. Mantieni tutte le colonne originali. 2. Includi i dati di transato solo per i primi due mesi, ESCLUDENDO completamente il terzo mese (terza colonna). 3. Restituisci la tabella pronta per l'uso.</code>
+                <button onclick="copiaPrompt()" id="btnCopia" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-1.5 px-4 rounded text-xs transition whitespace-nowrap">Copia Prompt</button>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -89,8 +95,21 @@
         </div>
     </div>
 
-    <script src="calc.js?v=4.0"></script>
+    <script src="calc.js?v=5.0"></script>
     <script>
+        function copiaPrompt() {
+            let text = document.getElementById('promptText').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                let btn = document.getElementById('btnCopia');
+                btn.innerText = "Copiato!";
+                btn.className = "bg-emerald-500 text-slate-950 font-bold py-1.5 px-4 rounded text-xs transition whitespace-nowrap";
+                setTimeout(() => {
+                    btn.innerText = "Copia Prompt";
+                    btn.className = "bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-1.5 px-4 rounded text-xs transition whitespace-nowrap";
+                }, 2000);
+            });
+        }
+
         function elaboraFile() {
             let fileInput = document.getElementById('dataFile');
             if (fileInput.files.length === 0) {
