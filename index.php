@@ -21,13 +21,13 @@
             <ol class="list-decimal list-inside space-y-1.5 text-sm text-slate-300 mb-4">
                 <li>Apri l'<b>email del CTO inviata da Dojo</b> nei primi giorni del mese successivo.</li>
                 <li>Vai sulla stampa del report, crealo come <b>PDF</b> e scaricalo.</li>
-                <li>Chiedi a <b>Gemini</b> di convertire i dati in un file <b>Excel (.xlsx)</b> usando il prompt qui sotto (già ottimizzato per formattare i numeri in modo pulito).</li>
+                <li>Chiedi a <b>Gemini</b> di convertire i dati in un file <b>Excel (.xlsx)</b> usando il prompt qui sotto (escludendo il terzo mese).</li>
                 <li>Carica il file ed incolla l'elenco dei clienti nuovi: il sistema sommerà in automatico tutte le location collegate.</li>
             </ol>
 
             <!-- Box Prompt Copiabile -->
             <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <code id="promptText" class="text-xs text-slate-300 font-mono select-all">Ho allegato il report PDF del CTO inviato da Dojo. Estrai i dati tabulari e convertili in Excel (.xlsx). Regole rigorose per i numeri: 1. Includi solo i primi due mesi, escludendo il terzo. 2. I valori di transato devono essere scritti come numeri puri (es. 129645.43 oppure 129645,43), SENZA il simbolo dell'euro (€), SENZA virgole per le migliaia e SENZA percentuali o parentesi. 3. Mantieni le colonne dei nomi e manager intatte.</code>
+                <code id="promptText" class="text-xs text-slate-300 font-mono select-all">Ho allegato il report PDF del CTO inviato da Dojo. Estrai i dati tabulari e convertili in Excel (.xlsx). Regole rigorose: 1. Includi solo i primi due mesi, escludendo il terzo. 2. I valori di transato devono essere scritti come numeri puri (es. 129645.43 oppure 129645,43), SENZA il simbolo dell'euro (€), SENZA virgole per le migliaia e SENZA percentuali o parentesi. 3. Mantieni le colonne dei nomi e manager intatte.</code>
                 <button onclick="copiaPrompt()" id="btnCopia" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-1.5 px-4 rounded text-xs transition whitespace-nowrap">Copia Prompt</button>
             </div>
         </div>
@@ -97,7 +97,7 @@
         </div>
     </div>
 
-    <script src="calc.js?v=10.0"></script>
+    <script src="calc.js?v=11.0"></script>
     <script>
         function copiaPrompt() {
             let text = document.getElementById('promptText').innerText;
@@ -166,6 +166,8 @@
 
             let sampleKeys = Object.keys(data[0]);
             let nameCol = sampleKeys.find(k => k.toLowerCase().includes('cliente') || k.toLowerCase().includes('name') || k.toLowerCase().includes('activity') || k.toLowerCase().includes('azienda')) || sampleKeys[1];
+            
+            // Identifica con precisione le due colonne di transato (le uniche due colonne numeriche o in fondo)
             let colM1 = sampleKeys[sampleKeys.length - 2];
             let colM2 = sampleKeys[sampleKeys.length - 1];
 
@@ -215,10 +217,9 @@
             });
 
             let transatoTotalePortafoglio = transatoM1Totale + transatoM2Totale;
-            let dailyCtoMedio = (transatoM1Totale / (contratti || 1)) / 30;
 
             let vecchio = calcolaVecito(contratti, transatoM1Totale, transatoM2Totale);
-            let nuovo = calcolaNuovo(contratti, transatoTotalePortafoglio, sommaMarginaleGettoni, sommaM1M2Scaglioni, dailyCtoMedio);
+            let nuovo = calcolaNuovo(contratti, transatoM1Totale, sommaMarginaleGettoni, sommaM1M2Scaglioni);
 
             document.getElementById('risultatoVecchio').innerHTML = `
                 <div class="flex justify-between"><span>Location / Contratti Attivi:</span> <b>${contratti}</b></div>
