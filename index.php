@@ -22,7 +22,7 @@
                 <li>Apri l'<b>email del CTO inviata da Dojo</b> nei primi giorni del mese successivo.</li>
                 <li>Vai sulla stampa del report, crealo come <b>PDF</b> e scaricalo.</li>
                 <li>Chiedi a <b>Gemini</b> di convertire i dati in un file <b>Excel (.xlsx)</b> usando il prompt qui sotto (escludendo il terzo mese).</li>
-                <li>Carica il file ed incolla l'elenco dei clienti nuovi: il sistema sommerà in automatico tutte le location collegate.</li>
+                <li>Carica il file: se lasci il box sottostante vuoto, il sistema analizzerà l'intero file. Se vuoi filtrare clienti specifici, incollane l'elenco.</li>
             </ol>
 
             <!-- Box Prompt Copiabile -->
@@ -41,8 +41,8 @@
                     <input type="file" id="dataFile" accept=".csv, .xlsx, .xls" class="w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-500 file:text-slate-950 hover:file:bg-emerald-600 cursor-pointer">
                 </div>
                 <div>
-                    <label class="block text-sm text-slate-300 mb-1">Elenco Clienti Nuovi (uno per riga o separati da virgola):</label>
-                    <textarea id="elencoClienti" rows="6" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white" placeholder="Incolla qui i nomi dei clienti nuovi... Il sistema cercherà tutte le righe/location corrispondenti."></textarea>
+                    <label class="block text-sm text-slate-300 mb-1">Elenco Clienti Nuovi (Opzionale):</label>
+                    <textarea id="elencoClienti" rows="5" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white" placeholder="Lascia vuoto per analizzare tutto il file. Oppure incolla i nomi dei clienti specifici..."></textarea>
                 </div>
                 <button onclick="elaboraFile()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2 px-4 rounded transition">Analizza e Calcola</button>
             </div>
@@ -91,13 +91,13 @@
                     <li><b>Gettone Marginale:</b> Da € 15 a € 180 in base allo scaglione di Daily CTO stimato per location.</li>
                     <li><b>M1 & M2 Deferred:</b> Compensi fissi a scaglioni mensili (da € 15 a € 500 per mese per location).</li>
                     <li><b>Bonus Velocity:</b> Soglie cumulative basate sul totale delle location/MID qualificati.</li>
-                    <li><b>Milestone CTO:</b> Premio qualità basato sulla media del Daily CTO del portafoglio.</li>
+                    <li><b>Milestone CTO:</b> Premio qualità basato sulla media del Daily CTO del portafoglio (fino a € 800).</li>
                 </ul>
             </div>
         </div>
     </div>
 
-    <script src="calc.js?v=11.0"></script>
+    <script src="calc.js?v=12.0"></script>
     <script>
         function copiaPrompt() {
             let text = document.getElementById('promptText').innerText;
@@ -167,7 +167,6 @@
             let sampleKeys = Object.keys(data[0]);
             let nameCol = sampleKeys.find(k => k.toLowerCase().includes('cliente') || k.toLowerCase().includes('name') || k.toLowerCase().includes('activity') || k.toLowerCase().includes('azienda')) || sampleKeys[1];
             
-            // Identifica con precisione le due colonne di transato (le uniche due colonne numeriche o in fondo)
             let colM1 = sampleKeys[sampleKeys.length - 2];
             let colM2 = sampleKeys[sampleKeys.length - 1];
 
@@ -180,6 +179,12 @@
             data.forEach(row => {
                 let nomeCliente = row[nameCol] ? row[nameCol].toString().toLowerCase() : "";
                 
+                // Salta le righe di riepilogo "Totale" presenti nei file Excel
+                if (nomeCliente.includes('totale') || nomeCliente.includes('total') || nomeCliente === '') {
+                    return;
+                }
+
+                // Se l'utente ha inserito dei filtri testuali, applicali
                 if (clientiFiltrati.length > 0) {
                     let match = clientiFiltrati.some(c => nomeCliente.includes(c));
                     if (!match) return;
@@ -216,8 +221,6 @@
                 }
             });
 
-            let transatoTotalePortafoglio = transatoM1Totale + transatoM2Totale;
-
             let vecchio = calcolaVecito(contratti, transatoM1Totale, transatoM2Totale);
             let nuovo = calcolaNuovo(contratti, transatoM1Totale, sommaMarginaleGettoni, sommaM1M2Scaglioni);
 
@@ -235,7 +238,7 @@
 
             document.getElementById('risultatoNuovo').innerHTML = `
                 <div class="flex justify-between"><span>Location / Contratti Attivi:</span> <b>${contratti}</b></div>
-                <div class="flex justify-between"><span>Transato Totale:</span> <b>€ ${transatoTotalePortafoglio.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</b></div>
+                <div class="flex justify-between"><span>Transato M1 (Totale):</span> <b>€ ${transatoM1Totale.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</b></div>
                 <div class="flex justify-between"><span>Gettone Base (150€):</span> <b>€ ${nuovo.gettoneBase.toFixed(2)}</b></div>
                 <div class="flex justify-between"><span>Gettone Marginale:</span> <b>€ ${nuovo.gettoneMarginale.toFixed(2)}</b></div>
                 <div class="flex justify-between"><span>M1 & M2 (Scaglioni):</span> <b>€ ${nuovo.m1m2Nuovi.toFixed(2)}</b></div>
