@@ -12,17 +12,17 @@
     <div class="max-w-6xl mx-auto">
         <header class="mb-8 text-center">
             <h1 class="text-3xl font-bold text-emerald-400">Simulatore Payout Agenti Dojo</h1>
-            <p class="text-slate-400 mt-2">Confronto in tempo reale: Vecchio Piano vs Nuovo Piano</p>
+            <p class="text-slate-400 mt-2">Confronto in tempo reale: Vecchio Piano vs Nuovo Piano (Solo Clienti Nuovi)</p>
         </header>
 
         <!-- Box Guida Operativa -->
         <div class="bg-slate-800 border border-amber-500/40 p-6 rounded-xl mb-8 relative">
             <h2 class="text-lg font-bold text-amber-400 mb-2">Come ottenere il file corretto:</h2>
             <ol class="list-decimal list-inside space-y-1.5 text-sm text-slate-300 mb-4">
-                <li>Apri l'<b>email del CTO inviata da Dojo</b> nei primi giorni del mese successivo (per valutare i due mesi precedenti).</li>
+                <li>Apri l'<b>email del CTO inviata da Dojo</b> nei primi giorni del mese successivo.</li>
                 <li>Vai sulla stampa del report, crealo come <b>PDF</b> e scaricalo.</li>
                 <li>Chiedi a <b>Gemini</b> di estrarre e convertire i dati in un file <b>Excel (.xlsx)</b> usando il prompt qui sotto, escludendo il terzo mese.</li>
-                <li>Carica qui sotto il file Excel pulito con i dati dei due mesi per avviare la simulazione.</li>
+                <li>Carica il file ed incolla l'elenco dei soli clienti nuovi attivati nei due mesi.</li>
             </ol>
 
             <!-- Box Prompt Copiabile -->
@@ -33,16 +33,18 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Pannello Caricamento File -->
-            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 md:col-span-1">
-                <h2 class="text-xl font-semibold mb-4 text-amber-400">Carica Dati Portafoglio</h2>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm text-slate-300 mb-2">Seleziona file (.xlsx o .csv):</label>
-                        <input type="file" id="dataFile" accept=".csv, .xlsx, .xls" class="w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-500 file:text-slate-950 hover:file:bg-emerald-600 cursor-pointer">
-                    </div>
-                    <button onclick="elaboraFile()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2 px-4 rounded transition">Analizza e Calcola</button>
+            <!-- Pannello Caricamento File e Filtro Clienti -->
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 md:col-span-1 space-y-4">
+                <h2 class="text-xl font-semibold text-amber-400">Parametri Analisi</h2>
+                <div>
+                    <label class="block text-sm text-slate-300 mb-2">Seleziona file (.xlsx o .csv):</label>
+                    <input type="file" id="dataFile" accept=".csv, .xlsx, .xls" class="w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-500 file:text-slate-950 hover:file:bg-emerald-600 cursor-pointer">
                 </div>
+                <div>
+                    <label class="block text-sm text-slate-300 mb-1">Elenco Clienti Nuovi (uno per riga o separati da virgola):</label>
+                    <textarea id="elencoClienti" rows="6" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white" placeholder="Incolla qui i nomi dei clienti nuovi... Se vuoto, considera tutti i clienti del file."></textarea>
+                </div>
+                <button onclick="elaboraFile()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2 px-4 rounded transition">Analizza e Calcola</button>
             </div>
 
             <!-- Pannello Risultati Comparativi -->
@@ -51,7 +53,7 @@
                 <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
                     <h3 class="text-lg font-bold text-rose-400 mb-3">Vecchio Piano</h3>
                     <div id="risultatoVecchio" class="space-y-2 text-sm text-slate-300">
-                        <p class="text-slate-500 italic">Carica un file Excel/CSV per visualizzare i dati...</p>
+                        <p class="text-slate-500 italic">Carica il file e avvia il calcolo...</p>
                     </div>
                 </div>
 
@@ -59,7 +61,7 @@
                 <div class="bg-slate-900/50 p-4 rounded-lg border border-emerald-500/30">
                     <h3 class="text-lg font-bold text-emerald-400 mb-3">Nuovo Piano</h3>
                     <div id="risultatoNuovo" class="space-y-2 text-sm text-slate-300">
-                        <p class="text-slate-500 italic">Carica un file Excel/CSV per visualizzare i dati...</p>
+                        <p class="text-slate-500 italic">Carica il file e avvia il calcolo...</p>
                     </div>
                 </div>
             </div>
@@ -68,7 +70,7 @@
         <!-- Box Differenza Netta -->
         <div id="boxDifferenza" class="bg-slate-800 border border-slate-700 p-6 rounded-xl text-center mb-12">
             <h3 class="text-xl font-semibold text-slate-300">Differenza Economica</h3>
-            <p id="testoDifferenza" class="text-2xl font-bold text-slate-400 mt-2">In attesa di caricamento file...</p>
+            <p id="testoDifferenza" class="text-2xl font-bold text-slate-400 mt-2">In attesa di elaborazione...</p>
         </div>
 
         <!-- Sezione Regole Applicate -->
@@ -95,7 +97,7 @@
         </div>
     </div>
 
-    <script src="calc.js?v=6.0"></script>
+    <script src="calc.js?v=7.0"></script>
     <script>
         function copiaPrompt() {
             let text = document.getElementById('promptText').innerText;
@@ -146,7 +148,6 @@
         function parseValore(val) {
             if (typeof val === 'number') return val;
             if (!val) return 0;
-            // Rimuove simboli valuta, spazi e gestisce eventuale testo tra parentesi es. "€34,892.37 (-73%)" o con virgole
             let pulito = val.toString().split('(')[0].replace(/[€\s]/g, '').replace(/\./g, '').replace(',', '.');
             return parseFloat(pulito) || 0;
         }
@@ -157,15 +158,18 @@
                 return;
             }
 
+            // Estrae l'elenco dei clienti filtrati dalla textarea (se inseriti)
+            let rawText = document.getElementById('elencoClienti').value.trim();
+            let clientiFiltrati = [];
+            if (rawText !== "") {
+                clientiFiltrati = rawText.split(/[\n,]+/).map(s => s.trim().toLowerCase()).filter(s => s.length > 0);
+            }
+
             let sampleKeys = Object.keys(data[0]);
-            // Prende le ultime 2 colonne come M1 e M2 indipendentemente dal nome esatto
+            // Identifica la colonna del nome cliente/attività e le 2 colonne di transato
+            let nameCol = sampleKeys.find(k => k.toLowerCase().includes('cliente') || k.toLowerCase().includes('name') || k.toLowerCase().includes('activity') || k.toLowerCase().includes('azienda')) || sampleKeys[1];
             let colM1 = sampleKeys[sampleKeys.length - 2];
             let colM2 = sampleKeys[sampleKeys.length - 1];
-
-            if (!colM1 || !colM2) {
-                alert("Impossibile individuare le colonne dei dati nel file.");
-                return;
-            }
 
             let contratti = 0;
             let transatoM1Totale = 0;
@@ -174,6 +178,14 @@
             let sommaM1M2Scaglioni = 0;
 
             data.forEach(row => {
+                let nomeCliente = row[nameCol] ? row[nameCol].toString().toLowerCase() : "";
+                
+                // Se sono stati inseriti clienti da filtrare, controlla che il cliente sia presente nell'elenco
+                if (clientiFiltrati.length > 0) {
+                    let match = clientiFiltrati.some(c => nomeCliente.includes(c));
+                    if (!match) return; // Salta questo cliente se non è nell'elenco dei nuovi
+                }
+
                 let v1 = parseValore(row[colM1]);
                 let v2 = parseValore(row[colM2]);
 
@@ -212,7 +224,7 @@
             let nuovo = calcolaNuovo(contratti, transatoTotalePortafoglio, sommaMarginaleGettoni, sommaM1M2Scaglioni, dailyCtoMedio);
 
             document.getElementById('risultatoVecchio').innerHTML = `
-                <div class="flex justify-between"><span>Contratti Attivi:</span> <b>${contratti}</b></div>
+                <div class="flex justify-between"><span>Contratti Nuovi Attivi:</span> <b>${contratti}</b></div>
                 <div class="flex justify-between"><span>Transato M1:</span> <b>€ ${transatoM1Totale.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</b></div>
                 <div class="flex justify-between"><span>Transato M2:</span> <b>€ ${transatoM2Totale.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</b></div>
                 <div class="flex justify-between"><span>Gettone Base (200€):</span> <b>€ ${vecchio.gettoneBase.toFixed(2)}</b></div>
@@ -224,7 +236,7 @@
             `;
 
             document.getElementById('risultatoNuovo').innerHTML = `
-                <div class="flex justify-between"><span>Contratti Attivi:</span> <b>${contratti}</b></div>
+                <div class="flex justify-between"><span>Contratti Nuovi Attivi:</span> <b>${contratti}</b></div>
                 <div class="flex justify-between"><span>Transato Totale:</span> <b>€ ${transatoTotalePortafoglio.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</b></div>
                 <div class="flex justify-between"><span>Gettone Base (150€):</span> <b>€ ${nuovo.gettoneBase.toFixed(2)}</b></div>
                 <div class="flex justify-between"><span>Gettone Marginale:</span> <b>€ ${nuovo.gettoneMarginale.toFixed(2)}</b></div>
