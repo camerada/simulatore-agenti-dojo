@@ -21,13 +21,13 @@
             <ol class="list-decimal list-inside space-y-1.5 text-sm text-slate-300 mb-4">
                 <li>Apri l'<b>email del CTO inviata da Dojo</b> nei primi giorni del mese successivo.</li>
                 <li>Vai sulla stampa del report, crealo come <b>PDF</b> e scaricalo.</li>
-                <li>Chiedi a <b>Gemini</b> di estrarre e convertire i dati in un file <b>Excel (.xlsx)</b> usando il prompt qui sotto, escludendo il terzo mese.</li>
+                <li>Chiedi a <b>Gemini</b> di convertire i dati in un file <b>Excel (.xlsx)</b> usando il prompt qui sotto (già ottimizzato per formattare i numeri in modo pulito).</li>
                 <li>Carica il file ed incolla l'elenco dei clienti nuovi: il sistema sommerà in automatico tutte le location collegate.</li>
             </ol>
 
             <!-- Box Prompt Copiabile -->
             <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <code id="promptText" class="text-xs text-slate-300 font-mono select-all">Ho allegato il report PDF del CTO inviato da Dojo (ricevuto nei primi giorni del mese). Estrai i dati tabulari e convertili in Excel (.xlsx) o CSV. Regole: 1. Mantieni tutte le colonne originali. 2. Includi i dati di transato solo per i primi due mesi, ESCLUDENDO completamente il terzo mese (terza colonna). 3. Restituisci la tabella pronta per l'uso.</code>
+                <code id="promptText" class="text-xs text-slate-300 font-mono select-all">Ho allegato il report PDF del CTO inviato da Dojo. Estrai i dati tabulari e convertili in Excel (.xlsx). Regole rigorose per i numeri: 1. Includi solo i primi due mesi, escludendo il terzo. 2. I valori di transato devono essere scritti come numeri puri (es. 129645.43 oppure 129645,43), SENZA il simbolo dell'euro (€), SENZA virgole per le migliaia e SENZA percentuali o parentesi. 3. Mantieni le colonne dei nomi e manager intatte.</code>
                 <button onclick="copiaPrompt()" id="btnCopia" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-1.5 px-4 rounded text-xs transition whitespace-nowrap">Copia Prompt</button>
             </div>
         </div>
@@ -97,7 +97,7 @@
         </div>
     </div>
 
-    <script src="calc.js?v=8.0"></script>
+    <script src="calc.js?v=10.0"></script>
     <script>
         function copiaPrompt() {
             let text = document.getElementById('promptText').innerText;
@@ -148,7 +148,7 @@
         function parseValore(val) {
             if (typeof val === 'number') return val;
             if (!val) return 0;
-            let pulito = val.toString().split('(')[0].replace(/[€\s]/g, '').replace(/\./g, '').replace(',', '.');
+            let pulito = val.toString().split('(')[0].replace(/[€\s]/g, '').replace(/,/g, '');
             return parseFloat(pulito) || 0;
         }
 
@@ -178,17 +178,16 @@
             data.forEach(row => {
                 let nomeCliente = row[nameCol] ? row[nameCol].toString().toLowerCase() : "";
                 
-                // Se l'utente ha inserito dei clienti, verifica se la riga contiene almeno una delle parole chiave inserite
                 if (clientiFiltrati.length > 0) {
                     let match = clientiFiltrati.some(c => nomeCliente.includes(c));
-                    if (!match) return; // Salta questa riga se non corrisponde a nessun cliente nuovo cercato
+                    if (!match) return;
                 }
 
                 let v1 = parseValore(row[colM1]);
                 let v2 = parseValore(row[colM2]);
 
                 if (v1 > 0 || v2 > 0) {
-                    contratti++; // Ogni riga (location) corrisponde a un contratto/MID attivo
+                    contratti++;
                     transatoM1Totale += v1;
                     transatoM2Totale += v2;
 
