@@ -12,8 +12,19 @@
     <div class="max-w-6xl mx-auto">
         <header class="mb-8 text-center">
             <h1 class="text-3xl font-bold text-emerald-400">Simulatore Payout Agenti Dojo</h1>
-            <p class="text-slate-400 mt-2">Carica il file Excel o CSV con i dati dei due mesi e confronta in tempo reale</p>
+            <p class="text-slate-400 mt-2">Confronto in tempo reale: Vecchio Piano vs Nuovo Piano</p>
         </header>
+
+        <!-- Box Guida Operativa -->
+        <div class="bg-slate-800 border border-amber-500/40 p-6 rounded-xl mb-8">
+            <h2 class="text-lg font-bold text-amber-400 mb-2">Come ottenere il file corretto:</h2>
+            <ol class="list-decimal list-inside space-y-1.5 text-sm text-slate-300">
+                <li>Apri l'<b>email del CTO inviata da Dojo</b> nei primi giorni del mese successivo (per valutare i due mesi precedenti).</li>
+                <li>Vai sulla stampa del report, crealo come <b>PDF</b> e scaricalo.</li>
+                <li>Chiedi a <b>Gemini</b> di estrarre e convertire i dati in un file <b>Excel (.xlsx)</b>, assicurandoti di escludere il terzo mese.</li>
+                <li>Carica qui sotto il file Excel pulito con i dati dei due mesi per avviare la simulazione.</li>
+            </ol>
+        </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <!-- Pannello Caricamento File -->
@@ -78,7 +89,7 @@
         </div>
     </div>
 
-    <script src="calc.js?v=3.0"></script>
+    <script src="calc.js?v=4.0"></script>
     <script>
         function elaboraFile() {
             let fileInput = document.getElementById('dataFile');
