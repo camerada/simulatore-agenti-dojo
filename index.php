@@ -12,7 +12,7 @@
     <div class="max-w-6xl mx-auto">
         <header class="mb-8 text-center">
             <h1 class="text-3xl font-bold text-emerald-400">Simulatore Payout Agenti Dojo</h1>
-            <p class="text-slate-400 mt-2">Confronto in tempo reale: Vecchio Piano vs Nuovo Piano (Solo Clienti Nuovi)</p>
+            <p class="text-slate-400 mt-2">Confronto in tempo reale: Vecchio Piano vs Nuovo Piano (Gestione Multi-Location)</p>
         </header>
 
         <!-- Box Guida Operativa -->
@@ -22,7 +22,7 @@
                 <li>Apri l'<b>email del CTO inviata da Dojo</b> nei primi giorni del mese successivo.</li>
                 <li>Vai sulla stampa del report, crealo come <b>PDF</b> e scaricalo.</li>
                 <li>Chiedi a <b>Gemini</b> di estrarre e convertire i dati in un file <b>Excel (.xlsx)</b> usando il prompt qui sotto, escludendo il terzo mese.</li>
-                <li>Carica il file ed incolla l'elenco dei soli clienti nuovi attivati nei due mesi.</li>
+                <li>Carica il file ed incolla l'elenco dei clienti nuovi: il sistema sommerà in automatico tutte le location collegate.</li>
             </ol>
 
             <!-- Box Prompt Copiabile -->
@@ -42,7 +42,7 @@
                 </div>
                 <div>
                     <label class="block text-sm text-slate-300 mb-1">Elenco Clienti Nuovi (uno per riga o separati da virgola):</label>
-                    <textarea id="elencoClienti" rows="6" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white" placeholder="Incolla qui i nomi dei clienti nuovi... Se vuoto, considera tutti i clienti del file."></textarea>
+                    <textarea id="elencoClienti" rows="6" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white" placeholder="Incolla qui i nomi dei clienti nuovi... Il sistema cercherà tutte le righe/location corrispondenti."></textarea>
                 </div>
                 <button onclick="elaboraFile()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2 px-4 rounded transition">Analizza e Calcola</button>
             </div>
@@ -78,7 +78,7 @@
             <div>
                 <h3 class="text-lg font-bold text-rose-400 mb-3">Regole Vecchio Sistema</h3>
                 <ul class="list-disc list-inside space-y-1 text-sm text-slate-300">
-                    <li><b>Gettone Base:</b> € 200 fissi per ogni contratto attivato.</li>
+                    <li><b>Gettone Base:</b> € 200 fissi per ogni contratto/location attivata.</li>
                     <li><b>Bonus Gara:</b> Sistema a scaglioni progressivi marginali (5-8 pz a 150€, 9-12 a 200€, ecc.).</li>
                     <li><b>M1:</b> 0,45% calcolato sul transato del primo mese del file.</li>
                     <li><b>M2:</b> 0,45% calcolato sul transato del secondo mese del file.</li>
@@ -87,17 +87,17 @@
             <div>
                 <h3 class="text-lg font-bold text-emerald-400 mb-3">Regole Nuovo Sistema</h3>
                 <ul class="list-disc list-inside space-y-1 text-sm text-slate-300">
-                    <li><b>Gettone Base:</b> € 150 fissi per contratto.</li>
-                    <li><b>Gettone Marginale:</b> Da € 15 a € 180 in base allo scaglione di Daily CTO stimato.</li>
-                    <li><b>M1 & M2 Deferred:</b> Compensi fissi a scaglioni mensili (da € 15 a € 500 per mese).</li>
-                    <li><b>Bonus Velocity:</b> Soglie cumulative sui MID qualificati (da € 50 a oltre € 2.800).</li>
-                    <li><b>Milestone CTO:</b> Premio qualità basato sulla media del Daily CTO del portafoglio (da € 150 a € 800).</li>
+                    <li><b>Gettone Base:</b> € 150 fissi per contratto/location.</li>
+                    <li><b>Gettone Marginale:</b> Da € 15 a € 180 in base allo scaglione di Daily CTO stimato per location.</li>
+                    <li><b>M1 & M2 Deferred:</b> Compensi fissi a scaglioni mensili (da € 15 a € 500 per mese per location).</li>
+                    <li><b>Bonus Velocity:</b> Soglie cumulative basate sul totale delle location/MID qualificati.</li>
+                    <li><b>Milestone CTO:</b> Premio qualità basato sulla media del Daily CTO del portafoglio.</li>
                 </ul>
             </div>
         </div>
     </div>
 
-    <script src="calc.js?v=7.0"></script>
+    <script src="calc.js?v=8.0"></script>
     <script>
         function copiaPrompt() {
             let text = document.getElementById('promptText').innerText;
@@ -158,7 +158,6 @@
                 return;
             }
 
-            // Estrae l'elenco dei clienti filtrati dalla textarea (se inseriti)
             let rawText = document.getElementById('elencoClienti').value.trim();
             let clientiFiltrati = [];
             if (rawText !== "") {
@@ -166,7 +165,6 @@
             }
 
             let sampleKeys = Object.keys(data[0]);
-            // Identifica la colonna del nome cliente/attività e le 2 colonne di transato
             let nameCol = sampleKeys.find(k => k.toLowerCase().includes('cliente') || k.toLowerCase().includes('name') || k.toLowerCase().includes('activity') || k.toLowerCase().includes('azienda')) || sampleKeys[1];
             let colM1 = sampleKeys[sampleKeys.length - 2];
             let colM2 = sampleKeys[sampleKeys.length - 1];
@@ -180,17 +178,17 @@
             data.forEach(row => {
                 let nomeCliente = row[nameCol] ? row[nameCol].toString().toLowerCase() : "";
                 
-                // Se sono stati inseriti clienti da filtrare, controlla che il cliente sia presente nell'elenco
+                // Se l'utente ha inserito dei clienti, verifica se la riga contiene almeno una delle parole chiave inserite
                 if (clientiFiltrati.length > 0) {
                     let match = clientiFiltrati.some(c => nomeCliente.includes(c));
-                    if (!match) return; // Salta questo cliente se non è nell'elenco dei nuovi
+                    if (!match) return; // Salta questa riga se non corrisponde a nessun cliente nuovo cercato
                 }
 
                 let v1 = parseValore(row[colM1]);
                 let v2 = parseValore(row[colM2]);
 
                 if (v1 > 0 || v2 > 0) {
-                    contratti++;
+                    contratti++; // Ogni riga (location) corrisponde a un contratto/MID attivo
                     transatoM1Totale += v1;
                     transatoM2Totale += v2;
 
@@ -224,7 +222,7 @@
             let nuovo = calcolaNuovo(contratti, transatoTotalePortafoglio, sommaMarginaleGettoni, sommaM1M2Scaglioni, dailyCtoMedio);
 
             document.getElementById('risultatoVecchio').innerHTML = `
-                <div class="flex justify-between"><span>Contratti Nuovi Attivi:</span> <b>${contratti}</b></div>
+                <div class="flex justify-between"><span>Location / Contratti Attivi:</span> <b>${contratti}</b></div>
                 <div class="flex justify-between"><span>Transato M1:</span> <b>€ ${transatoM1Totale.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</b></div>
                 <div class="flex justify-between"><span>Transato M2:</span> <b>€ ${transatoM2Totale.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</b></div>
                 <div class="flex justify-between"><span>Gettone Base (200€):</span> <b>€ ${vecchio.gettoneBase.toFixed(2)}</b></div>
@@ -236,7 +234,7 @@
             `;
 
             document.getElementById('risultatoNuovo').innerHTML = `
-                <div class="flex justify-between"><span>Contratti Nuovi Attivi:</span> <b>${contratti}</b></div>
+                <div class="flex justify-between"><span>Location / Contratti Attivi:</span> <b>${contratti}</b></div>
                 <div class="flex justify-between"><span>Transato Totale:</span> <b>€ ${transatoTotalePortafoglio.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</b></div>
                 <div class="flex justify-between"><span>Gettone Base (150€):</span> <b>€ ${nuovo.gettoneBase.toFixed(2)}</b></div>
                 <div class="flex justify-between"><span>Gettone Marginale:</span> <b>€ ${nuovo.gettoneMarginale.toFixed(2)}</b></div>
