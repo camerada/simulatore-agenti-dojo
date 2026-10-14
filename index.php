@@ -95,7 +95,7 @@
         </div>
     </div>
 
-    <script src="calc.js?v=5.0"></script>
+    <script src="calc.js?v=6.0"></script>
     <script>
         function copiaPrompt() {
             let text = document.getElementById('promptText').innerText;
@@ -143,6 +143,14 @@
             }
         }
 
+        function parseValore(val) {
+            if (typeof val === 'number') return val;
+            if (!val) return 0;
+            // Rimuove simboli valuta, spazi e gestisce eventuale testo tra parentesi es. "€34,892.37 (-73%)" o con virgole
+            let pulito = val.toString().split('(')[0].replace(/[€\s]/g, '').replace(/\./g, '').replace(',', '.');
+            return parseFloat(pulito) || 0;
+        }
+
         function processData(data) {
             if (!data || data.length === 0) {
                 alert("Il file è vuoto o non leggibile.");
@@ -150,15 +158,14 @@
             }
 
             let sampleKeys = Object.keys(data[0]);
-            let transatoCols = sampleKeys.filter(k => k.includes("Total Transaction Amount"));
+            // Prende le ultime 2 colonne come M1 e M2 indipendentemente dal nome esatto
+            let colM1 = sampleKeys[sampleKeys.length - 2];
+            let colM2 = sampleKeys[sampleKeys.length - 1];
 
-            if (transatoCols.length < 2) {
-                alert("Impossibile trovare almeno 2 colonne di transato mensile nel file.");
+            if (!colM1 || !colM2) {
+                alert("Impossibile individuare le colonne dei dati nel file.");
                 return;
             }
-
-            let colM1 = transatoCols[0];
-            let colM2 = transatoCols[1];
 
             let contratti = 0;
             let transatoM1Totale = 0;
@@ -167,8 +174,8 @@
             let sommaM1M2Scaglioni = 0;
 
             data.forEach(row => {
-                let v1 = parseFloat(row[colM1]) || 0;
-                let v2 = parseFloat(row[colM2]) || 0;
+                let v1 = parseValore(row[colM1]);
+                let v2 = parseValore(row[colM2]);
 
                 if (v1 > 0 || v2 > 0) {
                     contratti++;
