@@ -18,7 +18,7 @@ function calcolaVecito(contratti, transatoM1, transatoM2) {
     return { gettoneBase, gara, m1, m2, totale };
 }
 
-function calcolaNuovo(contratti, transatoM1, sommaMarginaleGettoni, sommaM1M2Scaglioni, dailyCtoMedioM1) {
+function calcolaNuovo(contratti, transatoM1, sommaMarginaleGettoni, sommaM1M2Scaglioni) {
     let gettoneBase = contratti * 150;
     let gettoneMarginale = sommaMarginaleGettoni;
     let m1m2Nuovi = sommaM1M2Scaglioni;
@@ -31,12 +31,14 @@ function calcolaNuovo(contratti, transatoM1, sommaMarginaleGettoni, sommaM1M2Sca
     else if (contratti >= 10) velocity = 250;
     else if (contratti >= 5) velocity = 50;
 
-    // Milestone applicata ESCLUSIVAMENTE sul Daily CTO del primo mese (M1)
+    // Daily CTO Medio Totale del Portafoglio su M1 (Transato M1 totale / 30 giorni)
+    let dailyCtoMedioPortafoglio = transatoM1 / 30;
+
     let milestone = 0;
-    if (dailyCtoMedioM1 >= 1666) milestone = 800;
-    else if (dailyCtoMedioM1 >= 1000) milestone = 500;
-    else if (dailyCtoMedioM1 >= 750) milestone = 300;
-    else if (dailyCtoMedioM1 >= 500) milestone = 150;
+    if (dailyCtoMedioPortafoglio >= 1666) milestone = 800;
+    else if (dailyCtoMedioPortafoglio >= 1000) milestone = 500;
+    else if (dailyCtoMedioPortafoglio >= 750) milestone = 300;
+    else if (dailyCtoMedioPortafoglio >= 500) milestone = 150;
 
     let totale = gettoneBase + gettoneMarginale + m1m2Nuovi + velocity + milestone;
     return { gettoneBase, gettoneMarginale, m1m2Nuovi, velocity, milestone, totale };
